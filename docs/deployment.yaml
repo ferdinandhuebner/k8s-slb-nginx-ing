@@ -1,0 +1,51 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    component: slb-controller-nginx-ing
+  name: slb-controller-nginx-ing
+  namespace: kube-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        component: slb-controller-nginx-ing
+      annotations:
+        scheduler.alpha.kubernetes.io/critical-pod: ''
+    spec:
+      containers:
+      - name: slb-controller-nginx-ing
+        image: quay.io/ferdi/k8s-slb-nginx-ing:1.0.0-SNAPSHOT
+        resources:
+          requests:
+            cpu: 200m
+            memory: 250Mi
+          limits:
+            memory: 350Mi
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        args:
+        - --ingress.pillar=prometheus-ingress@default
+        - --ingress.tcp-config-map=nginx-tcp-ingress-configmap@kube-system
+        - --ingress.udp-config-map=nginx-udp-ingress-configmap@kube-system
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          timeoutSeconds: 20
+          successThreshold: 1
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: /actuator/info
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          timeoutSeconds: 20
+
