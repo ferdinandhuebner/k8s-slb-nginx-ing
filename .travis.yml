@@ -5,7 +5,7 @@ jdk:
   - openjdk8
 services:
   - docker
-install: ./mvnw dependency:resolve
+install: ./mvnw dependency:resolve && true
 cache:
   directories:
   - $HOME/.m2
