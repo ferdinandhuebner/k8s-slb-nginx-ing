@@ -64,17 +64,17 @@ object App {
     private def validateIngressProperties(): Unit = {
       val k8s = kubernetesRepository()
       val pillarRef = Reference(ingressProperties.pillar)
-      if (k8s.ingress(pillarRef.name, pillarRef.namespace) == null) {
+      if (k8s.ingress(name = pillarRef.name, namespace = pillarRef.namespace) == null) {
         throw new IllegalArgumentException(s"ingress pillar ${ingressProperties.pillar} not found")
       }
 
       val tcpRef = Reference(ingressProperties.tcpConfigMap)
-      if (k8s.configMap(tcpRef.name, tcpRef.namespace) == null) {
+      if (k8s.configMap(name = tcpRef.name, namespace = tcpRef.namespace) == null) {
         throw new IllegalArgumentException(s"tcp configmap ${ingressProperties.tcpConfigMap} not found")
       }
 
       val udpRef = Reference(ingressProperties.udpConfigMap)
-      if (k8s.configMap(udpRef.name, udpRef.namespace) == null) {
+      if (k8s.configMap(name = udpRef.name, namespace = udpRef.namespace) == null) {
         throw new IllegalArgumentException(s"tcp configmap ${ingressProperties.udpConfigMap} not found")
       }
 
@@ -92,13 +92,13 @@ object App {
       val udpRef = Reference(ingressProperties.udpConfigMap)
 
       actorSystem().actorOf(Props(new ServiceLoadBalancerController(
-        kubernetesRepository(),
-        pillarRef,
-        tcpRef,
-        udpRef,
-        eventDispatcher(),
-        ingressProperties.portWhitelist,
-        ingressProperties.portBlacklist
+        k8s = kubernetesRepository(),
+        pillar = pillarRef,
+        tcpRef = tcpRef,
+        udpRef = udpRef,
+        eventDispatcher = eventDispatcher(),
+        portWhitelistString = ingressProperties.portWhitelist,
+        portBlacklistString = ingressProperties.portBlacklist
       )))
     }
 

@@ -33,12 +33,12 @@ trait KubernetesRepository {
 
   def updateLoadBalancerStatus(service: Service): Unit
 
-  def configMap(namespace: String, name: String): ConfigMap
+  def configMap(name: String, namespace: String): ConfigMap
   def replaceDataInConfigMap(configMap: ConfigMap): ConfigMap
   def services(): List[Service]
   def ingresses(): List[Ingress]
   def ingress(name: String, namespace: String): Option[Ingress]
-  def watchConfigMap(namespace: String, name: String, watcher: KubernetesEvent[ConfigMap] => Unit, onCloseFunction: KubernetesClientException => Unit): Watch
+  def watchConfigMap(name: String, namespace: String, watcher: KubernetesEvent[ConfigMap] => Unit, onCloseFunction: KubernetesClientException => Unit): Watch
   def watchServices(watcher: KubernetesEvent[Service] => Unit, onCloseFunction: KubernetesClientException => Unit): Watch
   def watchIngresses(watcher: KubernetesEvent[Ingress] => Unit, onCloseFunction: KubernetesClientException => Unit): Watch
   def watchIngress(name: String, namespace: String, watcher: KubernetesEvent[Ingress] => Unit, onCloseFunction: KubernetesClientException => Unit): Watch
@@ -73,7 +73,7 @@ class KubernetesRepositoryImpl(private val kubernetesClient: KubernetesClient wi
     }
   }
 
-  override def configMap(namespace: String, name: String): ConfigMap = {
+  override def configMap(name: String, namespace: String): ConfigMap = {
     kubernetesClient.configMaps().inNamespace(namespace).withName(name).get()
   }
 
@@ -101,7 +101,7 @@ class KubernetesRepositoryImpl(private val kubernetesClient: KubernetesClient wi
     )
   }
 
-  override def watchConfigMap(namespace: String, name: String,
+  override def watchConfigMap(name: String, namespace: String,
       watcher: (KubernetesEvent[ConfigMap]) => Unit,
       onCloseFunction: (KubernetesClientException) => Unit): Watch = {
 

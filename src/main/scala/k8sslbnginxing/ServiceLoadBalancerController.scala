@@ -84,9 +84,9 @@ class ServiceLoadBalancerController(
     ingress.clear()
 
     services ++= k8s.services().filter(_.isServiceLoadBalancer).map(svc => svc.hashKey -> svc).toMap
-    ingress ++= k8s.ingress(pillar.name, pillar.namespace).map(getLoadBalancerIngress).getOrElse(Nil)
+    ingress ++= k8s.ingress(name = pillar.name, namespace = pillar.namespace).map(getLoadBalancerIngress).getOrElse(Nil)
     watches ++= Seq(
-      k8s.watchIngress(pillar.name, pillar.namespace, evt => self ! evt, e => onConnectionLost(e)),
+      k8s.watchIngress(name = pillar.name, namespace = pillar.namespace, evt => self ! evt, e => onConnectionLost(e)),
       k8s.watchServices(evt => self ! evt, e => onConnectionLost(e))
     )
 
@@ -97,14 +97,14 @@ class ServiceLoadBalancerController(
   }
 
   private def loadTcpMap(): ConfigMap = {
-    val map = k8s.configMap(tcpRef.namespace, tcpRef.name)
+    val map = k8s.configMap(name = tcpRef.name, namespace = tcpRef.namespace)
     if (map.getData == null) {
       map.setData(new util.HashMap())
     }
     map
   }
   private def loadUdpMap(): ConfigMap = {
-    val map = k8s.configMap(udpRef.namespace, udpRef.name)
+    val map = k8s.configMap(name = udpRef.name, namespace = udpRef.namespace)
     if (map.getData == null) {
       map.setData(new util.HashMap())
     }

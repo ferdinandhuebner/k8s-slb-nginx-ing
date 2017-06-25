@@ -28,7 +28,7 @@ class EventDispatcher(private val k8s: KubernetesClient) extends Actor {
 
   val log = Logging(context.system, this)
 
-  private def fireEvent(namespace: String, name: String, evtType: String, reason: String,
+  private def fireEvent(name: String, namespace: String, evtType: String, reason: String,
       message: String, involvedObject: HasMetadata): Unit = {
     log.debug("Firing " + message)
     try {
@@ -73,35 +73,90 @@ class EventDispatcher(private val k8s: KubernetesClient) extends Actor {
         val eventName = s"${resource.name}.${resource.getMetadata.getUid}.slb.portconflict"
         val conflictsMsg = conflicts.map(x => s"${x._1} is in use by ${x._2}").mkString(", ")
         val message = s"Not all ports can be bound: $conflictsMsg"
-        fireEvent(resource.namespace, truncate(eventName), "Warning", "PortsInUse", message, resource)
+        fireEvent(
+          name = truncate(eventName),
+          namespace = resource.namespace,
+          evtType = "Warning",
+          reason = "PortsInUse",
+          message = message,
+          involvedObject = resource)
+
       case PortsNotAllowed(resource, ports) =>
         val eventName = s"${resource.name}.${resource.getMetadata.getUid}.slb.portnotallowed"
         val message = s"The following ports can't be used: ${ports.mkString(", ")}"
-        fireEvent(resource.namespace, truncate(eventName), "Warning", "PortsNotAllowed", message, resource)
+        fireEvent(
+          name = truncate(eventName),
+          namespace = resource.namespace,
+          evtType = "Warning",
+          reason = "PortsNotAllowed",
+          message = message,
+          involvedObject = resource)
+
       case CannotUpdateLoadBalancerStatus(resource, cause) =>
         val eventName = s"${resource.name}.${resource.getMetadata.getUid}.slb.updatefailed"
         val message = s"Cannot update load balancer: $cause"
-        fireEvent(resource.namespace, truncate(eventName), "Warning", "UpdateFailed", message, resource)
+        fireEvent(
+          name = truncate(eventName),
+          namespace = resource.namespace,
+          evtType = "Warning",
+          reason = "UpdateFailed",
+          message = message,
+          involvedObject = resource)
+
       case CannotBindPorts(resource, cause) =>
         val eventName = s"${resource.name}.${resource.getMetadata.getUid}.slb.cannotbind"
         val message = s"Cannot bind load balancer ports: $cause"
-        fireEvent(resource.namespace, truncate(eventName), "Warning", "CantBind", message, resource)
+        fireEvent(
+          name = truncate(eventName),
+          namespace = resource.namespace,
+          evtType ="Warning",
+          reason = "CantBind",
+          message = message,
+          involvedObject = resource)
+
       case CannotUnbindPorts(resource, cause) =>
         val eventName = s"${resource.name}.${resource.getMetadata.getUid}.slb.cannotunbind"
         val message = s"Cannot unbind load balancer ports: $cause"
-        fireEvent(resource.namespace, truncate(eventName), "Warning", "CantUnbind", message, resource)
+        fireEvent(
+          name = truncate(eventName),
+          namespace = resource.namespace,
+          evtType = "Warning",
+          reason = "CantUnbind",
+          message = message,
+          involvedObject = resource)
+
       case LoadBalancerCreated(resource) =>
         val eventName = s"${resource.name}.${resource.getMetadata.getUid}.slb.created"
         val message = s"Load balancer created"
-        fireEvent(resource.namespace, truncate(eventName), "Normal", "Created", message, resource)
+        fireEvent(
+          name = truncate(eventName),
+          namespace = resource.namespace,
+          evtType = "Normal",
+          reason = "Created",
+          message = message,
+          involvedObject = resource)
+
       case LoadBalancerUpdated(resource) =>
         val eventName = s"${resource.name}.${resource.getMetadata.getUid}.slb.updated"
         val message = s"Load balancer updated"
-        fireEvent(resource.namespace, truncate(eventName), "Normal", "Updated", message, resource)
+        fireEvent(
+          name = truncate(eventName),
+          namespace = resource.namespace,
+          evtType = "Normal",
+          reason = "Updated",
+          message = message,
+          involvedObject = resource)
+
       case LoadBalancerDeleted(resource) =>
         val eventName = s"${resource.name}.${resource.getMetadata.getUid}.slb.deleted"
         val message = s"Load balancer deleted"
-        fireEvent(resource.namespace, truncate(eventName), "Normal", "Deleted", message, resource)
+        fireEvent(
+          name = truncate(eventName),
+          namespace = resource.namespace,
+          evtType = "Normal",
+          reason = "Deleted",
+          message = message,
+          involvedObject = resource)
     }
     case x =>
       log.warning("Unhandled message: " + x)
